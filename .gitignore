@@ -3,4 +3,3 @@
 *.gz
 *.pyc
 __pycache__/
-mnist.pkl

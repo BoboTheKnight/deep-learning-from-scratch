@@ -1,6 +1,8 @@
 # coding: utf-8
-import sys, os
-sys.path.append(os.pardir)  # 親ディレクトリのファイルをインポートするための設定
+import os
+import sys
+
+sys.path.append(os.pardir)  # 为了导入父目录中的文件而进行的设定
 import numpy as np
 from common.functions import softmax, cross_entropy_error
 from common.gradient import numerical_gradient
@@ -8,7 +10,7 @@ from common.gradient import numerical_gradient
 
 class simpleNet:
     def __init__(self):
-        self.W = np.random.randn(2,3)
+        self.W = np.random.randn(2, 3)
 
     def predict(self, x):
         return np.dot(x, self.W)
@@ -19,6 +21,7 @@ class simpleNet:
         loss = cross_entropy_error(y, t)
 
         return loss
+
 
 x = np.array([0.6, 0.9])
 t = np.array([0, 0, 1])

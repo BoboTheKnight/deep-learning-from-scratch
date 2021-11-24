@@ -1,0 +1,5 @@
+
+@
+dataset/mnist.py,9\1\919f518e674010eb0515d223b0d4d2100c851f88
+>
+ch01/hungry.py,d\f\df641802c10d8af5d2917d5650cb95b49e068cd3

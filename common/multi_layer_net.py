@@ -1,26 +1,28 @@
 # coding: utf-8
-import sys, os
-sys.path.append(os.pardir)  # 親ディレクトリのファイルをインポートするための設定
-import numpy as np
+import os
+import sys
+
+sys.path.append(os.pardir)  # 为了导入父目录的文件而进行的设定
 from collections import OrderedDict
 from common.layers import *
 from common.gradient import numerical_gradient
 
 
 class MultiLayerNet:
-    """全結合による多層ニューラルネットワーク
+    """全连接的多层神经网络
 
     Parameters
     ----------
-    input_size : 入力サイズ（MNISTの場合は784）
-    hidden_size_list : 隠れ層のニューロンの数のリスト（e.g. [100, 100, 100]）
-    output_size : 出力サイズ（MNISTの場合は10）
+    input_size : 输入大小（MNIST的情况下为784）
+    hidden_size_list : 隐藏层的神经元数量的列表（e.g. [100, 100, 100]）
+    output_size : 输出大小（MNIST的情况下为10）
     activation : 'relu' or 'sigmoid'
-    weight_init_std : 重みの標準偏差を指定（e.g. 0.01）
-        'relu'または'he'を指定した場合は「Heの初期値」を設定
-        'sigmoid'または'xavier'を指定した場合は「Xavierの初期値」を設定
-    weight_decay_lambda : Weight Decay（L2ノルム）の強さ
+    weight_init_std : 指定权重的标准差（e.g. 0.01）
+        指定'relu'或'he'的情况下设定“He的初始值”
+        指定'sigmoid'或'xavier'的情况下设定“Xavier的初始值”
+    weight_decay_lambda : Weight Decay（L2范数）的强度
     """
+
     def __init__(self, input_size, hidden_size_list, output_size,
                  activation='relu', weight_init_std='relu', weight_decay_lambda=0):
         self.input_size = input_size
@@ -30,41 +32,41 @@ class MultiLayerNet:
         self.weight_decay_lambda = weight_decay_lambda
         self.params = {}
 
-        # 重みの初期化
+        # 初始化权重
         self.__init_weight(weight_init_std)
 
-        # レイヤの生成
+        # 生成层
         activation_layer = {'sigmoid': Sigmoid, 'relu': Relu}
         self.layers = OrderedDict()
-        for idx in range(1, self.hidden_layer_num+1):
+        for idx in range(1, self.hidden_layer_num + 1):
             self.layers['Affine' + str(idx)] = Affine(self.params['W' + str(idx)],
                                                       self.params['b' + str(idx)])
             self.layers['Activation_function' + str(idx)] = activation_layer[activation]()
 
         idx = self.hidden_layer_num + 1
         self.layers['Affine' + str(idx)] = Affine(self.params['W' + str(idx)],
-            self.params['b' + str(idx)])
+                                                  self.params['b' + str(idx)])
 
         self.last_layer = SoftmaxWithLoss()
 
     def __init_weight(self, weight_init_std):
-        """重みの初期値設定
+        """设定权重的初始值
 
         Parameters
         ----------
-        weight_init_std : 重みの標準偏差を指定（e.g. 0.01）
-            'relu'または'he'を指定した場合は「Heの初期値」を設定
-            'sigmoid'または'xavier'を指定した場合は「Xavierの初期値」を設定
+        weight_init_std : 指定权重的标准差（e.g. 0.01）
+            指定'relu'或'he'的情况下设定“He的初始值”
+            指定'sigmoid'或'xavier'的情况下设定“Xavier的初始值”
         """
         all_size_list = [self.input_size] + self.hidden_size_list + [self.output_size]
         for idx in range(1, len(all_size_list)):
             scale = weight_init_std
             if str(weight_init_std).lower() in ('relu', 'he'):
-                scale = np.sqrt(2.0 / all_size_list[idx - 1])  # ReLUを使う場合に推奨される初期値
+                scale = np.sqrt(2.0 / all_size_list[idx - 1])  # 使用ReLU的情况下推荐的初始值
             elif str(weight_init_std).lower() in ('sigmoid', 'xavier'):
-                scale = np.sqrt(1.0 / all_size_list[idx - 1])  # sigmoidを使う場合に推奨される初期値
+                scale = np.sqrt(1.0 / all_size_list[idx - 1])  # 使用sigmoid的情况下推荐的初始值
 
-            self.params['W' + str(idx)] = scale * np.random.randn(all_size_list[idx-1], all_size_list[idx])
+            self.params['W' + str(idx)] = scale * np.random.randn(all_size_list[idx - 1], all_size_list[idx])
             self.params['b' + str(idx)] = np.zeros(all_size_list[idx])
 
     def predict(self, x):
@@ -74,16 +76,16 @@ class MultiLayerNet:
         return x
 
     def loss(self, x, t):
-        """損失関数を求める
+        """求损失函数
 
         Parameters
         ----------
-        x : 入力データ
-        t : 教師ラベル
+        x : 输入数据
+        t : 教师标签
 
         Returns
         -------
-        損失関数の値
+        损失函数的值
         """
         y = self.predict(x)
 
@@ -97,47 +99,47 @@ class MultiLayerNet:
     def accuracy(self, x, t):
         y = self.predict(x)
         y = np.argmax(y, axis=1)
-        if t.ndim != 1 : t = np.argmax(t, axis=1)
+        if t.ndim != 1: t = np.argmax(t, axis=1)
 
         accuracy = np.sum(y == t) / float(x.shape[0])
         return accuracy
 
     def numerical_gradient(self, x, t):
-        """勾配を求める（数値微分）
+        """求梯度（数值微分）
 
         Parameters
         ----------
-        x : 入力データ
-        t : 教師ラベル
+        x : 输入数据
+        t : 教师标签
 
         Returns
         -------
-        各層の勾配を持ったディクショナリ変数
-            grads['W1']、grads['W2']、...は各層の重み
-            grads['b1']、grads['b2']、...は各層のバイアス
+        具有各层的梯度的字典变量
+            grads['W1']、grads['W2']、...是各层的权重
+            grads['b1']、grads['b2']、...是各层的偏置
         """
         loss_W = lambda W: self.loss(x, t)
 
         grads = {}
-        for idx in range(1, self.hidden_layer_num+2):
+        for idx in range(1, self.hidden_layer_num + 2):
             grads['W' + str(idx)] = numerical_gradient(loss_W, self.params['W' + str(idx)])
             grads['b' + str(idx)] = numerical_gradient(loss_W, self.params['b' + str(idx)])
 
         return grads
 
     def gradient(self, x, t):
-        """勾配を求める（誤差逆伝搬法）
+        """求梯度（误差反向传播法）
 
         Parameters
         ----------
-        x : 入力データ
-        t : 教師ラベル
+        x : 输入数据
+        t : 教师标签
 
         Returns
         -------
-        各層の勾配を持ったディクショナリ変数
-            grads['W1']、grads['W2']、...は各層の重み
-            grads['b1']、grads['b2']、...は各層のバイアス
+        具有各层的梯度的字典变量
+            grads['W1']、grads['W2']、...是各层的权重
+            grads['b1']、grads['b2']、...是各层的偏置
         """
         # forward
         self.loss(x, t)
@@ -151,10 +153,11 @@ class MultiLayerNet:
         for layer in layers:
             dout = layer.backward(dout)
 
-        # 設定
+        # 设定
         grads = {}
-        for idx in range(1, self.hidden_layer_num+2):
-            grads['W' + str(idx)] = self.layers['Affine' + str(idx)].dW + self.weight_decay_lambda * self.layers['Affine' + str(idx)].W
+        for idx in range(1, self.hidden_layer_num + 2):
+            grads['W' + str(idx)] = self.layers['Affine' + str(idx)].dW + self.weight_decay_lambda * self.layers[
+                'Affine' + str(idx)].W
             grads['b' + str(idx)] = self.layers['Affine' + str(idx)].db
 
         return grads

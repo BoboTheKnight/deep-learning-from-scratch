@@ -1,11 +1,11 @@
 # coding: utf-8
-import numpy as np
 import matplotlib.pyplot as plt
+import numpy as np
 
-# データの作成
-x = np.arange(0, 6, 0.1) # 0から6まで0.1刻みで生成
+# 生成数据
+x = np.arange(0, 6, 0.1)  # 以0.1为单位，生成0到6的数据
 y = np.sin(x)
 
-# グラフの描画
+# 绘制图形
 plt.plot(x, y)
 plt.show()

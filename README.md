@@ -31,7 +31,7 @@ $ python train_nueralnet.py
 
 ## 使用许可
 
-本源代码使用[MIT许可协议](http://www.opensource.org/licenses/MIT)。
+本源代码使用[MIT许可协议](http://www.opensource.org/licenses/MIT) 。
 无论是否为商业行为，均可自由使用。
 
 ## 勘误表
